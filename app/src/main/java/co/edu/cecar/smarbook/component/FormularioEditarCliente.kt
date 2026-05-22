@@ -1,7 +1,5 @@
 package co.edu.cecar.smarbook.component
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,10 +18,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -42,12 +45,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import co.edu.cecar.smarbook.model.cliente.ClienteEditarRequest
 import co.edu.cecar.smarbook.model.cliente.ClienteResponse
+import co.edu.cecar.smarbook.model.usuario.UsuarioEditarRequest
+import co.edu.cecar.smarbook.model.usuario.UsuarioResponse
 import java.time.Instant
 import java.time.ZoneId
 
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DialogEditarCliente(
     cliente: ClienteResponse,
@@ -56,6 +60,10 @@ fun DialogEditarCliente(
 ) {
     var mostrarCalendario by remember {
         mutableStateOf(false)
+    }
+
+    var errorValidacion by remember {
+        mutableStateOf("")
     }
 
     val datePickerState = rememberDatePickerState()
@@ -115,6 +123,15 @@ fun DialogEditarCliente(
                     verticalArrangement =
                         Arrangement.spacedBy(14.dp)
                 ) {
+
+                    if (errorValidacion.isNotEmpty()) {
+                        Text(
+                            text = errorValidacion,
+                            color = Color.Red,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
 
                     OutlinedTextField(
                         value = identificacionState,
@@ -204,14 +221,21 @@ fun DialogEditarCliente(
 
                         Button(
                             onClick = {
-                                onGuardar(
-                                    ClienteEditarRequest(
-                                        nombres = nombresState,
-                                        email = emailState,
-                                        celular = celularState,
-                                        fechaNacimiento = fechaNacimientoState
+                                if (identificacionState.isBlank() || nombresState.isBlank() || 
+                                    emailState.isBlank() || celularState.isBlank() || 
+                                    fechaNacimientoState.isBlank()) {
+                                    errorValidacion = "Todos los campos son obligatorios"
+                                } else {
+                                    errorValidacion = ""
+                                    onGuardar(
+                                        ClienteEditarRequest(
+                                            nombres = nombresState,
+                                            email = emailState,
+                                            celular = celularState,
+                                            fechaNacimiento = fechaNacimientoState
+                                        )
                                     )
-                                )
+                                }
                             },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Red
@@ -274,6 +298,236 @@ fun DialogEditarCliente(
                                     modifier = Modifier.scale(0.85f)
                                 )
                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DialogEditarUsuario(
+    usuario: UsuarioResponse,
+    mensajeError: String = "",
+    onDismiss: () -> Unit,
+    onGuardar: (UsuarioEditarRequest) -> Unit
+) {
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+
+    var errorValidacion by remember {
+        mutableStateOf("")
+    }
+
+    var nombresState by remember(usuario) {
+        mutableStateOf(usuario.nombres)
+    }
+
+    var emailState by remember(usuario) {
+        mutableStateOf(usuario.email)
+    }
+
+    var rolState by remember(usuario) {
+        mutableStateOf(usuario.rol)
+    }
+
+    var activoState by remember(usuario) {
+        mutableStateOf(usuario.activo)
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss
+    ) {
+
+        Card(
+            shape = RoundedCornerShape(16.dp)
+        ) {
+
+            Column {
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Red)
+                        .padding(20.dp)
+                ) {
+
+                    Text(
+                        text = "Editar Usuario",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    val errorAMostrar = if (errorValidacion.isNotEmpty()) errorValidacion else mensajeError
+                    
+                    if (errorAMostrar.isNotEmpty()) {
+                        Text(
+                            text = errorAMostrar,
+                            color = Color.Red,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    OutlinedTextField(
+                        value = usuario.identificacion,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = {
+                            Text("Identificación")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = nombresState,
+                        onValueChange = {
+                            nombresState = it
+                        },
+                        label = {
+                            Text("Nombres")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    OutlinedTextField(
+                        value = emailState,
+                        onValueChange = {
+                            emailState = it
+                        },
+                        label = {
+                            Text("Correo")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = {
+                            expanded = !expanded
+                        }
+                    ) {
+                        val rolLabel = when(rolState) {
+                            "Admin" -> "Administrador"
+                            "Vendedor" -> "Vendedor"
+                            else -> rolState
+                        }
+
+                        OutlinedTextField(
+                            value = rolLabel,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = {
+                                Text("Selecciona el rol")
+                            },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(
+                                    expanded = expanded
+                                )
+                            },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = {
+                                expanded = false
+                            }
+                        ) {
+
+                            DropdownMenuItem(
+                                text = {
+                                    Text("Administrador")
+                                },
+                                onClick = {
+                                    rolState = "Admin"
+                                    expanded = false
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = {
+                                    Text("Vendedor")
+                                },
+                                onClick = {
+                                    rolState = "Vendedor"
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        Text(
+                            text = "Activo"
+                        )
+
+                        Spacer(
+                            modifier = Modifier.width(8.dp)
+                        )
+
+                        Switch(
+                            checked = activoState,
+                            onCheckedChange = {
+                                activoState = it
+                            }
+                        )
+                    }
+
+                    Spacer(
+                        modifier = Modifier.height(10.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+
+                        OutlinedButton(
+                            onClick = onDismiss
+                        ) {
+                            Text("Cancelar")
+                        }
+
+                        Spacer(
+                            modifier = Modifier.width(10.dp)
+                        )
+
+                        Button(
+                            onClick = {
+                                if (nombresState.isBlank() || emailState.isBlank() || rolState.isBlank()) {
+                                    errorValidacion = "Todos los campos son obligatorios"
+                                } else {
+                                    errorValidacion = ""
+                                    onGuardar(
+                                        UsuarioEditarRequest(
+                                            nombres = nombresState,
+                                            email = emailState,
+                                            rol = if (rolState == "Admin") 1 else 2,
+                                            activo = activoState
+                                        )
+                                    )
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Red
+                            )
+                        ) {
+                            Text("Guardar Usuario")
                         }
                     }
                 }

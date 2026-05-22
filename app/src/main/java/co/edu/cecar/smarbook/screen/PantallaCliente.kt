@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.edu.cecar.smarbook.component.DialogEditarCliente
+import co.edu.cecar.smarbook.component.ItemListado
 import co.edu.cecar.smarbook.data.local.SessionManager
 import co.edu.cecar.smarbook.data.repository.ClienteRepository
 import co.edu.cecar.smarbook.model.cliente.ClienteResponse
@@ -176,66 +177,23 @@ fun PantallaClientes() {
 
             items(clientesFiltrados) { cliente ->
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(
-                            horizontal = 14.dp,
-                            vertical = 12.dp
-                        )
-                ) {
+                ItemListado(
 
-                    Text(
-                        text = cliente.identificacion,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
+                    titulo = cliente.identificacion,
 
-                    Spacer(
-                        modifier = Modifier.height(4.dp)
-                    )
+                    datos = listOf(
+                        cliente.nombres,
+                        cliente.email,
+                        cliente.celular
+                    ),
 
-                    Text(
-                        text = cliente.nombres,
-                        fontSize = 15.sp
-                    )
+                    onEditar = {
 
-                    Text(
-                        text = cliente.email,
-                        fontSize = 13.sp
-                    )
+                        clienteSeleccionado = cliente
 
-                    Text(
-                        text = cliente.celular,
-                        fontSize = 13.sp
-                    )
-
-                    Spacer(
-                        modifier = Modifier.height(6.dp)
-                    )
-
-                    Text(
-                        text = "Editar",
-                        color = Color.Red,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clickable {
-
-                            clienteSeleccionado =
-                                cliente
-
-                            mostrarEditarState =
-                                true
-                        }
-                    )
-
-                    Divider(
-                        color = Color.LightGray,
-                        thickness = 1.dp,
-                        modifier = Modifier
-                            .padding(top = 12.dp)
-                    )
-                }
+                        mostrarEditarState = true
+                    }
+                )
             }
         }
 
