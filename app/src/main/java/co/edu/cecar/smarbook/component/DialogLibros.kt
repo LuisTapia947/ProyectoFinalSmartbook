@@ -11,6 +11,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import co.edu.cecar.smarbook.model.libro.LibroEditarRequest
 import co.edu.cecar.smarbook.model.libro.LibroRequest
 import co.edu.cecar.smarbook.model.libro.LibroResponse
@@ -24,35 +25,36 @@ fun DialogCrearLibro(
     onGuardar: (LibroRequest) -> Unit
 ) {
 
-    var nombre by remember {
+    var nombre by remember { mutableStateOf("") }
+    var nivel by remember { mutableStateOf("") }
+    var tipo by remember { mutableStateOf("") }
+    var edicion by remember { mutableStateOf("") }
+    var unidades by remember { mutableStateOf("") }
+    var lote by remember { mutableStateOf("") }
+    var valorCompra by remember { mutableStateOf("") }
+    var valorVentaPublico by remember { mutableStateOf("") }
+
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+
+    var errorNombre by remember {
         mutableStateOf("")
     }
 
-    var nivel by remember {
+    var errorNivel by remember {
         mutableStateOf("")
     }
 
-    var tipo by remember {
+    var errorTipo by remember {
         mutableStateOf("")
     }
 
-    var edicion by remember {
+    var errorEdicion by remember {
         mutableStateOf("")
     }
 
-    var unidades by remember {
-        mutableStateOf("")
-    }
-
-    var lote by remember {
-        mutableStateOf("")
-    }
-
-    var valorCompra by remember {
-        mutableStateOf("")
-    }
-
-    var valorVentaPublico by remember {
+    var errorLote by remember {
         mutableStateOf("")
     }
 
@@ -66,13 +68,59 @@ fun DialogCrearLibro(
 
                 onClick = {
 
+                    errorNombre = ""
+                    errorNivel = ""
+                    errorTipo = ""
+                    errorEdicion = ""
+                    errorLote = ""
+
+                    var valido = true
+
+                    if (nombre.isBlank()) {
+                        errorNombre = "Debe ingresar el nombre"
+                        valido = false
+                    }
+
+                    if (nivel.isBlank()) {
+                        errorNivel = "Debe ingresar el nivel"
+                        valido = false
+                    }
+
+                    if (tipo.isBlank()) {
+                        errorTipo = "Debe seleccionar un tipo"
+                        valido = false
+                    }
+
+                    if (edicion.isBlank()) {
+                        errorEdicion = "Debe ingresar la edición"
+                        valido = false
+                    }
+
+                    if ((lote.toIntOrNull() ?: 0) <= 0) {
+                        errorLote = "Debe ingresar un lote válido"
+                        valido = false
+                    }
+
+                    if ((unidades.toIntOrNull() ?: 0) < 0) {
+                        valido = false
+                    }
+
+                    if ((valorCompra.toDoubleOrNull() ?: 0.0) < 0) {
+                        valido = false
+                    }
+
+                    if ((valorVentaPublico.toDoubleOrNull() ?: 0.0) < 0) {
+                        valido = false
+                    }
+
+                    if (!valido) return@Button
+
                     val tipoNumero = when (tipo) {
 
-                        "StudentsBook" -> 1
+                        "Student's Book" -> 1
 
                         "Workbook" -> 2
 
-                        "TeacherBook" -> 3
 
                         else -> 1
                     }
@@ -131,24 +179,43 @@ fun DialogCrearLibro(
 
         text = {
 
-            Column( modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())) {
+            Column(
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(
+                        rememberScrollState()
+                    )
+            ) {
 
                 OutlinedTextField(
 
                     value = nombre,
 
                     onValueChange = {
+
                         nombre = it
+                        errorNombre = ""
                     },
 
                     modifier = Modifier.fillMaxWidth(),
 
                     label = {
                         Text("Nombre")
-                    }
+                    },
+
+                    isError =
+                        errorNombre.isNotEmpty()
                 )
+
+                if (errorNombre.isNotEmpty()) {
+
+                    Text(
+                        text = errorNombre,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
 
                 Spacer(
                     modifier = Modifier.height(10.dp)
@@ -159,38 +226,137 @@ fun DialogCrearLibro(
                     value = nivel,
 
                     onValueChange = {
+
                         nivel = it
+                        errorNivel = ""
                     },
 
                     modifier = Modifier.fillMaxWidth(),
 
                     label = {
                         Text("Nivel")
-                    }
+                    },
+
+                    isError =
+                        errorNivel.isNotEmpty()
                 )
+
+                if (errorNivel.isNotEmpty()) {
+
+                    Text(
+                        text = errorNivel,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
 
                 Spacer(
                     modifier = Modifier.height(10.dp)
                 )
 
-                OutlinedTextField(
+                ExposedDropdownMenuBox(
 
-                    value = tipo,
+                    expanded = expanded,
 
-                    onValueChange = {
-                        tipo = it
-                    },
+                    onExpandedChange = {
 
-                    modifier = Modifier.fillMaxWidth(),
-
-                    label = {
-                        Text("Tipo")
-                    },
-
-                    placeholder = {
-                        Text("StudentsBook")
+                        expanded = !expanded
                     }
-                )
+                ) {
+
+                    OutlinedTextField(
+
+                        value = tipo,
+
+                        onValueChange = {},
+
+                        readOnly = true,
+
+                        label = {
+                            Text("Tipo")
+                        },
+
+                        placeholder = {
+                            Text("Seleccione tipo...")
+                        },
+
+                        trailingIcon = {
+
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded = expanded
+                                )
+                        },
+
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+
+                        isError =
+                            errorTipo.isNotEmpty()
+                    )
+
+                    ExposedDropdownMenu(
+
+                        expanded = expanded,
+
+                        onDismissRequest = {
+
+                            expanded = false
+                        }
+                    ) {
+
+                        DropdownMenuItem(
+
+                            text = {
+
+                                Text(
+                                    "Student's Book"
+                                )
+                            },
+
+                            onClick = {
+
+                                tipo =
+                                    "Student's Book"
+
+                                errorTipo = ""
+
+                                expanded = false
+                            }
+                        )
+
+                        DropdownMenuItem(
+
+                            text = {
+
+                                Text(
+                                    "Workbook"
+                                )
+                            },
+
+                            onClick = {
+
+                                tipo = "Workbook"
+
+                                errorTipo = ""
+
+                                expanded = false
+                            }
+                        )
+
+
+                    }
+                }
+
+                if (errorTipo.isNotEmpty()) {
+
+                    Text(
+                        text = errorTipo,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
 
                 Spacer(
                     modifier = Modifier.height(10.dp)
@@ -201,15 +367,29 @@ fun DialogCrearLibro(
                     value = edicion,
 
                     onValueChange = {
+
                         edicion = it
+                        errorEdicion = ""
                     },
 
                     modifier = Modifier.fillMaxWidth(),
 
                     label = {
                         Text("Edición")
-                    }
+                    },
+
+                    isError =
+                        errorEdicion.isNotEmpty()
                 )
+
+                if (errorEdicion.isNotEmpty()) {
+
+                    Text(
+                        text = errorEdicion,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
 
                 Spacer(
                     modifier = Modifier.height(10.dp)
@@ -230,7 +410,8 @@ fun DialogCrearLibro(
                     },
 
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number
+                        keyboardType =
+                            KeyboardType.Number
                     )
                 )
 
@@ -243,7 +424,9 @@ fun DialogCrearLibro(
                     value = lote,
 
                     onValueChange = {
+
                         lote = it
+                        errorLote = ""
                     },
 
                     modifier = Modifier.fillMaxWidth(),
@@ -253,9 +436,22 @@ fun DialogCrearLibro(
                     },
 
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number
-                    )
+                        keyboardType =
+                            KeyboardType.Number
+                    ),
+
+                    isError =
+                        errorLote.isNotEmpty()
                 )
+
+                if (errorLote.isNotEmpty()) {
+
+                    Text(
+                        text = errorLote,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
 
                 Spacer(
                     modifier = Modifier.height(10.dp)
@@ -276,7 +472,8 @@ fun DialogCrearLibro(
                     },
 
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal
+                        keyboardType =
+                            KeyboardType.Decimal
                     )
                 )
 
@@ -299,7 +496,8 @@ fun DialogCrearLibro(
                     },
 
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal
+                        keyboardType =
+                            KeyboardType.Decimal
                     )
                 )
             }
@@ -327,11 +525,37 @@ fun DialogEditarLibro(
     }
 
     var tipo by remember {
-        mutableStateOf(libro.tipo)
+        mutableStateOf(
+            when (libro.tipo) {
+                "StudentsBook" -> "Student's Book"
+                "Workbook" -> "Workbook"
+                else -> libro.tipo
+            }
+        )
     }
 
     var edicion by remember {
         mutableStateOf(libro.edicion)
+    }
+
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+
+    var errorNombre by remember {
+        mutableStateOf("")
+    }
+
+    var errorNivel by remember {
+        mutableStateOf("")
+    }
+
+    var errorTipo by remember {
+        mutableStateOf("")
+    }
+
+    var errorEdicion by remember {
+        mutableStateOf("")
     }
 
     AlertDialog(
@@ -344,13 +568,55 @@ fun DialogEditarLibro(
 
                 onClick = {
 
+                    errorNombre = ""
+                    errorNivel = ""
+                    errorTipo = ""
+                    errorEdicion = ""
+
+                    var valido = true
+
+                    if (nombre.isBlank()) {
+
+                        errorNombre =
+                            "Debe ingresar el nombre"
+
+                        valido = false
+                    }
+
+                    if (nivel.isBlank()) {
+
+                        errorNivel =
+                            "Debe ingresar el nivel"
+
+                        valido = false
+                    }
+
+                    if (tipo.isBlank()) {
+
+                        errorTipo =
+                            "Debe seleccionar un tipo"
+
+                        valido = false
+                    }
+
+                    if (edicion.isBlank()) {
+
+                        errorEdicion =
+                            "Debe ingresar la edición"
+
+                        valido = false
+                    }
+
+                    if (!valido) {
+                        return@Button
+                    }
+
                     val tipoNumero = when (tipo) {
 
-                        "StudentsBook" -> 1
+                        "Student's Book" -> 1
 
                         "Workbook" -> 2
 
-                        "TeacherBook" -> 3
 
                         else -> 1
                     }
@@ -399,9 +665,14 @@ fun DialogEditarLibro(
 
         text = {
 
-            Column( modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())) {
+            Column(
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(
+                        rememberScrollState()
+                    )
+            ) {
 
                 OutlinedTextField(
 
@@ -415,8 +686,19 @@ fun DialogEditarLibro(
 
                     label = {
                         Text("Nombre")
-                    }
+                    },
+
+                    isError = errorNombre.isNotEmpty()
                 )
+
+                if (errorNombre.isNotEmpty()) {
+
+                    Text(
+                        text = errorNombre,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
 
                 Spacer(
                     modifier = Modifier.height(10.dp)
@@ -434,27 +716,109 @@ fun DialogEditarLibro(
 
                     label = {
                         Text("Nivel")
-                    }
+                    },
+
+                    isError = errorNivel.isNotEmpty()
                 )
+
+                if (errorNivel.isNotEmpty()) {
+
+                    Text(
+                        text = errorNivel,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
 
                 Spacer(
                     modifier = Modifier.height(10.dp)
                 )
 
-                OutlinedTextField(
+                ExposedDropdownMenuBox(
 
-                    value = tipo,
+                    expanded = expanded,
 
-                    onValueChange = {
-                        tipo = it
-                    },
-
-                    modifier = Modifier.fillMaxWidth(),
-
-                    label = {
-                        Text("Tipo")
+                    onExpandedChange = {
+                        expanded = !expanded
                     }
-                )
+                ) {
+
+                    OutlinedTextField(
+
+                        value = tipo,
+
+                        onValueChange = {},
+
+                        readOnly = true,
+
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+
+                        label = {
+                            Text("Tipo")
+                        },
+
+                        trailingIcon = {
+
+                            ExposedDropdownMenuDefaults
+                                .TrailingIcon(
+                                    expanded = expanded
+                                )
+                        },
+
+                        isError = errorTipo.isNotEmpty()
+                    )
+
+                    ExposedDropdownMenu(
+
+                        expanded = expanded,
+
+                        onDismissRequest = {
+                            expanded = false
+                        }
+                    ) {
+
+                        DropdownMenuItem(
+
+                            text = {
+                                Text("Student's Book")
+                            },
+
+                            onClick = {
+
+                                tipo = "Student's Book"
+
+                                expanded = false
+                            }
+                        )
+
+                        DropdownMenuItem(
+
+                            text = {
+                                Text("Workbook")
+                            },
+
+                            onClick = {
+
+                                tipo = "Workbook"
+
+                                expanded = false
+                            }
+                        )
+
+
+                    }
+                }
+
+                if (errorTipo.isNotEmpty()) {
+
+                    Text(
+                        text = errorTipo,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
 
                 Spacer(
                     modifier = Modifier.height(10.dp)
@@ -472,8 +836,19 @@ fun DialogEditarLibro(
 
                     label = {
                         Text("Edición")
-                    }
+                    },
+
+                    isError = errorEdicion.isNotEmpty()
                 )
+
+                if (errorEdicion.isNotEmpty()) {
+
+                    Text(
+                        text = errorEdicion,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
             }
         }
     )

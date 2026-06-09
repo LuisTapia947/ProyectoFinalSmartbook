@@ -21,3 +21,4 @@ data class LibroRequest(
 
     val valorVentaPublico: Double
 )
+
