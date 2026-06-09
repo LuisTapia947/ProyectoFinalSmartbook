@@ -7,6 +7,6 @@ data class UsuarioRequest(
     val identificacion: String,
     val nombres: String,
     val email: String,
-    val rol: String,
-    val activo: Boolean
+    val password: String,
+    val rol: Int
 )

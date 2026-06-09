@@ -10,4 +10,9 @@ data class UsuarioResponse(
     val email: String,
     val rol: String,
     val activo: Boolean
+
+)
+@Serializable
+data class MensajeResponseUsua(
+    val mensaje: String
 )

@@ -50,15 +50,13 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PantallaDashboard(
-    navegarAPantallaCliente : () -> Unit,
-    navegarAPantallaLibro : () -> Unit,
-    navegarAPantallaVenta : () -> Unit
-){
+    navegarAPantallaCliente: () -> Unit,
+    navegarAPantallaLibro: () -> Unit,
+    navegarAPantallaVenta: () -> Unit,
+) {
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
     val repository = remember { DashboadRepository() }
-
-
 
     val currencyFormat = remember {
         NumberFormat.getCurrencyInstance(Locale("es", "CO")).apply {
@@ -70,16 +68,16 @@ fun PantallaDashboard(
     var mensajeError by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-
-        repository.obtenerDashboard(
-            sessionManager.getToken().first()!!
-        )
-            .onSuccess { response ->
-                dashboard = response
-            }
-            .onFailure {
-                mensajeError = "Error al cargar dashboard"
-            }
+        val token = sessionManager.getToken().first()
+        if (token != null) {
+            repository.obtenerDashboard(token)
+                .onSuccess { response ->
+                    dashboard = response
+                }
+                .onFailure {
+                    mensajeError = "Error al cargar dashboard"
+                }
+        }
     }
 
     Column(
@@ -96,11 +94,11 @@ fun PantallaDashboard(
             maxLines = 1,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
-
         )
         Text(
-            text = """
-                Administra los clientes del sistema SmartBook""".trimIndent()
+            text = "Administra el sistema SmartBook",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -117,7 +115,8 @@ fun PantallaDashboard(
             titulo = "Total Clientes",
             valor = dashboard?.totalClientes?.toString() ?: "0",
             icono = Icons.Default.Person,
-            colorLinea = Color.Red
+            colorLinea = Color.Red,
+            onClick = navegarAPantallaCliente
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -126,7 +125,8 @@ fun PantallaDashboard(
             titulo = "Libros Registrados",
             valor = dashboard?.totalLibros?.toString() ?: "0",
             icono = Icons.Default.MenuBook,
-            colorLinea = Color(0xFF3F3CA8)
+            colorLinea = Color(0xFF3F3CA8),
+            onClick = navegarAPantallaLibro
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -135,7 +135,8 @@ fun PantallaDashboard(
             titulo = "Ventas Mes",
             valor = dashboard?.cantVentasMes?.toString() ?: "0",
             icono = Icons.Default.ShoppingBag,
-            colorLinea = Color.Red
+            colorLinea = Color.Red,
+            onClick = navegarAPantallaVenta
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -144,14 +145,15 @@ fun PantallaDashboard(
             titulo = "Ingresos Mes",
             valor = currencyFormat.format(dashboard?.totalVentasMes ?: 0.0),
             icono = Icons.Default.AttachMoney,
-            colorLinea = Color(0xFF3F3CA8)
+            colorLinea = Color(0xFF3F3CA8),
+            onClick = navegarAPantallaVenta
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(Color.White)
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Últimas ventas de hoy", fontWeight = FontWeight.Bold)
@@ -170,13 +172,14 @@ fun PantallaDashboard(
                     }
                 } else {
                     dashboard?.ventasHoy?.forEach { venta ->
-
                         val fechaFormateada = remember(venta.fecha) {
-                            LocalDateTime
-                                .parse(venta.fecha)
-                                .format(
-                                    DateTimeFormatter.ofPattern("hh:mm a")
-                                )
+                            try {
+                                LocalDateTime
+                                    .parse(venta.fecha)
+                                    .format(DateTimeFormatter.ofPattern("hh:mm a"))
+                            } catch (e: Exception) {
+                                venta.fecha
+                            }
                         }
 
                         OutlinedCard(
@@ -212,7 +215,7 @@ fun PantallaDashboard(
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(Color.White)
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Información general", fontWeight = FontWeight.Bold)
@@ -248,7 +251,7 @@ fun PantallaDashboard(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Button(
-                                onClick = {navegarAPantallaCliente()},
+                                onClick = { navegarAPantallaCliente() },
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color.Red
@@ -262,7 +265,7 @@ fun PantallaDashboard(
                             }
 
                             Button(
-                                onClick = {navegarAPantallaLibro()},
+                                onClick = { navegarAPantallaLibro() },
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFF3F3CA8)
@@ -276,7 +279,7 @@ fun PantallaDashboard(
                             }
 
                             Button(
-                                onClick = {navegarAPantallaVenta()},
+                                onClick = { navegarAPantallaVenta() },
                                 modifier = Modifier.weight(1f),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color.Red
@@ -294,6 +297,4 @@ fun PantallaDashboard(
             }
         }
     }
-
 }
-

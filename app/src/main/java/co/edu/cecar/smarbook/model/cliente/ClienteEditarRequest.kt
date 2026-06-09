@@ -10,5 +10,7 @@ data class ClienteEditarRequest(
 )
 @Serializable
 data class MensajeResponse(
-    val message: String
-)
+    val mensaje: String
+) {
+
+}

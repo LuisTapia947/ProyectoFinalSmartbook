@@ -11,4 +11,11 @@ data class ClienteResponse(
     val celular: String,
     val fechaNacimiento: String
 
+) {
+
+
+}
+@Serializable
+data class MensajeResponseCliente(
+    val mensaje: String
 )
